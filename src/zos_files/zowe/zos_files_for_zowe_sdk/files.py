@@ -13,6 +13,7 @@ Copyright Contributors to the Zowe Project.
 from zowe.core_for_zowe_sdk import SdkApi
 from zowe.core_for_zowe_sdk.exceptions import FileNotFound
 import os
+import inspect
 
 
 class Files(SdkApi):
@@ -156,4 +157,68 @@ class Files(SdkApi):
         payload = f'/-({volume})/{dataset_name}' if volume else f'/{dataset_name}'
         custom_args['url'] = f'{self.request_endpoint}ds{payload}'
         response_json = self.request_handler.perform_request('DELETE', custom_args, expected_code=[204])
+        return response_json
+
+    def allocate_dsn(
+            self, dataset_name,
+            volser=None,
+            unit=None,
+            dsorg='PS',
+            alcunit='TRK',
+            primary=1,
+            secondary=1,
+            dirblk=0,
+            avgblk=None,
+            recfm='FB',
+            blksize=27920,
+            lrecl=80,
+            storclass=None,
+            mgntclass=None,
+            dataclass=None,
+            dsntype=None,
+            like=None
+    ):
+        """
+        Create sequential and partitioned data sets on a z/OS system.
+
+        :param dataset_name: Name of a z/OS data set that you are going to create
+        :param volser: Volume serial
+        :param unit: Device type
+        :param dsorg: Data set organization (Default: PS)
+        :param alcunit: Unit of space allocation (Default: TRK)
+        :param primary: Primary space allocation (Default: 1)
+        :param secondary: Secondary space allocation (Default: 1)
+        :param dirblk: Number of directory blocks (Default: 0)
+        :param avgblk: Average block size
+        :param recfm: Record format (Default: FB)
+        :param blksize: Block size (Default: 27920)
+        :param lrecl: Record length (Defaukt: 80)
+        :param storclass: Storage class
+        :param mgntclass: Management class
+        :param dataclass: Data class
+        :param dsntype: Data set type
+        :param like: Model data set name
+
+        :return: A JSON with a status code of an operation <br/><br/>
+                Status code 201 indicates success. A status code of 4nn or 5nn indicates that an error has occurred. <br/><br/>
+                For a successful creating request, 201 Created with no content will be returned.
+        """
+        custom_args = self.create_custom_request_arguments()
+        custom_args['url'] = f'{self.request_endpoint}ds/{dataset_name}'
+
+        frame = inspect.currentframe()
+        args, _, _, values = inspect.getargvalues(frame)
+        args_val = {}
+        for item in args:
+            if item in ['self', 'dataset_name']:
+                continue
+            if values[item] is None:
+                continue
+            else:
+                args_val[item] = values[item]
+
+        custom_args['json'] = args_val
+        custom_args['headers']['Content-Type'] = 'application/json'
+
+        response_json = self.request_handler.perform_request('POST', custom_args, expected_code=[201])
         return response_json
