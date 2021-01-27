@@ -142,7 +142,7 @@ class Files(SdkApi):
         else:
             raise FileNotFound(input_file)
 
-    def delete_file(self, dataset_name, volume=None):
+    def delete_dsn(self, dataset_name, volume=None):
         """Delete sequential and partitioned data set on a z/OS system.
 
         Returns
