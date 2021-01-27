@@ -141,3 +141,19 @@ class Files(SdkApi):
             response_json = self.write_to_dsn(dataset_name, file_contents)
         else:
             raise FileNotFound(input_file)
+
+    def delete_file(self, dataset_name, volume=None):
+        """Delete sequential and partitioned data set on a z/OS system.
+
+        Returns
+        -------
+        json
+            A JSON with a status code of an operation <br/><br/>
+            Status code 204 indicates success. A status code of 4nn or 5nn indicates that an error has occurred. <br/><br/>
+            If the request is successfully executed, status code 204 indicates success and no content is returned.
+        """
+        custom_args = self.create_custom_request_arguments()
+        payload = f'/-({volume})/{dataset_name}' if volume else f'/{dataset_name}'
+        custom_args['url'] = f'{self.request_endpoint}ds{payload}'
+        response_json = self.request_handler.perform_request('DELETE', custom_args, expected_code=[204])
+        return response_json
